@@ -1,0 +1,715 @@
+Sadi Eila
+<!doctype html>
+<html lang="ar" dir="rtl" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مشاركة إنسانية</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full w-full">
+  <div id="app" class="w-full h-full"></div>
+  <script>
+        const defaultConfig = {
+            background_color: "#f8fafc",
+            surface_color: "#ffffff",
+            text_color: "#334155",
+            primary_action_color: "#60a5fa",
+            secondary_action_color: "#94a3b8",
+            font_family: "Segoe UI",
+            font_size: 16,
+            main_title: "مشاركة إنسانية",
+            subtitle: "خطوة بسيطة تساعد في تحديد الأولويات الإنسانية",
+            trust_text: "  مجهول • معلومات اختيارية • للاستخدام الإنساني فقط",
+            start_button: "ابدأ المشاركة",
+            submit_button: "مشاركة"
+        };
+
+        let config = {};
+        let currentPage = 'reassurance';
+        let formData = {
+            category: '',
+            subProblem: '',
+            area: '',
+            details: '',
+            name: '',
+            idNumber: '',
+            phone: ''
+        };
+        let currentStep = 1;
+
+   const categories = {
+
+    "صحة": [
+        "نقص الأدوية الأساسية (مسكنات، مضادات حيوية)",
+        "انقطاع علاج الأمراض المزمنة (سكر، ضغط، ربو)",
+        "إصابات تحتاج رعاية أولية ولا يوجد طبيب",
+        "انتشار أعراض إسهال وتقيؤ بين الأطفال",
+        "التهابات تنفسية بسبب البرد والرطوبة",
+        "أمراض جلدية بسبب سوء النظافة والازدحام",
+        "أخرى (مشكلة صحية غير مذكورة)"
+    ],
+
+    "مياه وصرف صحي": [
+        "عدم توفر مياه صالحة للشرب بشكل منتظم",
+        "مياه ملوثة أو غير صالحة للاستخدام",
+        "اختلاط مياه الصرف مع مياه الأمطار",
+        "تجمع مياه عادمة قرب أماكن السكن",
+        "عدم توفر مراحيض كافية أو صالحة",
+        "نقص مواد النظافة",
+        "أخرى (مشكلة مياه أو صرف صحي)"
+    ],
+
+    "غذاء وتغذية": [
+        "عدم توفر وجبات غذائية كافية",
+        "سوء تغذية الأطفال والحوامل",
+        "نقص حليب الأطفال",
+        "عدم توفر أدوات طبخ",
+        "عدم توفر نقاط لتوزيع او بيع الخبز",
+        "أخرى (مشكلة غذائية أو تغذية)"
+    ],
+
+    "مأوى وخيم": [
+        "تلف الخيمة بسبب الأمطار أو الرياح",
+        "تسرّب المياه داخل الخيمة",
+        "عدم توفر أغطية أو فرش",
+        "عدم عزل الخيمة عن البرد",
+        "اكتظاظ شديد داخل الخيام",
+        "موقع الخيمة غير آمن أو معرض للغرق",
+        "أخرى (مشكلة مأوى أو خيم)"
+    ],
+
+    "الشتاء والتدفئة": [
+        "عدم توفر ملابس شتوية كافية",
+        "التعرض للبرد الشديد خاصة للأطفال",
+        "مخاطر الحريق داخل الخيم",
+        "أمراض ناتجة عن البرد والرطوبة",
+        "الحاجة لمستلزمات شتوية (أغطية، مدافئ)",
+        "أخرى (مشكلة متعلقة بالشتاء أو التدفئة)"
+    ],
+
+    "الوصول للخدمات الطبية": [
+        "إغلاق أو توقف مركز صحي قريب",
+        "صعوبة الوصول للمستشفى بسبب الطرق او الطقس",
+        "نقص سيارات الإسعاف",
+        "تأخر الاستجابة للحالات الطارئة",
+        "عدم توفر طواقم طبية كافية",
+        "عدم توفر نقاط طبية و إسعاف أولي",
+        "أخرى (مشكلة في الوصول للخدمات الطبية)"
+    ],
+
+    "لا أعرف / أخرى": [
+        "عدة مشاكل في نفس الوقت",
+        "لا أستطيع تحديد المشكلة",
+    ]
+};
+
+
+        const areas = ["شمال غزة", "غزة المدينة", "الوسطى", "خانيونس و رفح"];
+
+        function getCustomFont() {
+            const customFont = config.font_family || defaultConfig.font_family;
+            return `${customFont}, Segoe UI, Tahoma, Geneva, Verdana, sans-serif`;
+        }
+
+        function getScaledFontSize(multiplier = 1) {
+            const baseSize = config.font_size || defaultConfig.font_size;
+            return `${baseSize * multiplier}px`;
+        }
+
+        function renderReassurancePage() {
+            const bgColor = config.background_color || defaultConfig.background_color;
+            const surfaceColor = config.surface_color || defaultConfig.surface_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+            const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+            const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+            return `
+                <div class="fade-in" style="background-color: ${bgColor}; min-height: 100%; padding: 1.5rem; display: flex; align-items: center; justify-content: center;">
+                    <div style="max-width: 600px; width: 100%;">
+                        <div style="background-color: ${surfaceColor}; border-radius: 1rem; padding: 2.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <h1 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(2)}; font-weight: 600; color: ${textColor}; text-align: center; margin: 0 0 0.75rem 0;">
+                                ${config.main_title || defaultConfig.main_title}
+                            </h1>
+                            
+                            <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.85)}; color: ${secondaryColor}; text-align: center; margin: 0 0 0.5rem 0;">
+                                ${config.trust_text || defaultConfig.trust_text}
+                            </p>
+                            
+                            <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.1)}; color: ${textColor}; text-align: center; margin: 0 0 2rem 0; line-height: 1.6;">
+                                ${config.subtitle || defaultConfig.subtitle}
+                            </p>
+                            
+                            <div style="background-color: ${bgColor}; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                                <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; color: ${textColor}; margin: 0 0 1rem 0; line-height: 1.6;">
+                                    مشاركتك تساعد في معرفة أكثر المشاكل تكرارًا لتوجيه الاستجابة الإنسانية.
+                                </p>
+                                  <div style="display: grid; gap: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="font-size: ${getScaledFontSize(1.25)};">✓</span>
+                                        <span style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor};">بالشراكة مع مؤسسات محالية وعالمية</span>
+                                
+                                    </div>
+                                <div style="display: grid; gap: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="font-size: ${getScaledFontSize(1.25)};">✓</span>
+                                        <span style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor};">لا نطلب الاسم</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="font-size: ${getScaledFontSize(1.25)};">✓</span>
+                                        <span style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor};">لا نطلب رقم الهوية</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="font-size: ${getScaledFontSize(1.25)};">✓</span>
+                                        <span style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor};">لا نحدد الموقع الدقيق</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span style="font-size: ${getScaledFontSize(1.25)};">✓</span>
+                                        <span style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor};">يستغرق أقل من دقيقة</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="startBtn" style="width: 100%; background-color: ${primaryColor}; color: white; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.1)}; font-weight: 500; padding: 1rem; border: none; border-radius: 0.75rem; cursor: pointer; margin-bottom: 1rem; transition: all 0.2s;">
+                                ${config.start_button || defaultConfig.start_button}
+                            </button>
+                            
+                            <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.85)}; color: ${secondaryColor}; text-align: center; margin: 0 0 1rem 0;">
+                                يمكنك التوقف أو الرجوع في أي وقت
+                            </p>
+                            
+                            <div id="infoSection" style="border-top: 1px solid ${bgColor}; padding-top: 1rem;">
+                                <button id="infoToggle" style="width: 100%; background: none; border: none; color: ${primaryColor}; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; cursor: pointer; text-align: center; padding: 0.5rem;">
+                                    كيف تُستخدم المعلومات؟
+                                </button>
+                                <div id="infoContent" style="display: none; margin-top: 1rem; padding: 1rem; background-color: ${bgColor}; border-radius: 0.5rem;">
+                                    <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; color: ${textColor}; margin: 0 0 0.5rem 0;">• تُستخدم فقط لفهم الأنماط المتكررة</p>
+                                    <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; color: ${textColor}; margin: 0;">• ولا يتم نشرها أو استخدامها لأغراض غير إنسانية</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFormPage() {
+            const bgColor = config.background_color || defaultConfig.background_color;
+            const surfaceColor = config.surface_color || defaultConfig.surface_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+            const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+            const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+            const progress = (currentStep / 4) * 100;
+
+            let stepContent = '';
+
+            if (currentStep === 1) {
+                stepContent = `
+                    <h2 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.5)}; font-weight: 600; color: ${textColor}; margin: 0 0 1.5rem 0; text-align: center;">
+                        اختر الفئة الرئيسية
+                    </h2>
+                    <div style="display: grid; gap: 0.75rem;">
+                        ${Object.keys(categories).map(cat => `
+                            <button class="category-btn" data-category="${cat}" style="background-color: ${surfaceColor}; border: 2px solid ${bgColor}; color: ${textColor}; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; padding: 1rem; border-radius: 0.75rem; cursor: pointer; text-align: right; transition: all 0.2s;">
+                                ${cat}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (currentStep === 2) {
+                const subProblems = categories[formData.category] || [];
+                stepContent = `
+                    <h2 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.5)}; font-weight: 600; color: ${textColor}; margin: 0 0 1.5rem 0; text-align: center;">
+                        حدد المشكلة
+                    </h2>
+                    <div style="display: grid; gap: 0.75rem;">
+                        ${subProblems.map(prob => `
+                            <button class="subproblem-btn" data-problem="${prob}" style="background-color: ${surfaceColor}; border: 2px solid ${bgColor}; color: ${textColor}; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; padding: 1rem; border-radius: 0.75rem; cursor: pointer; text-align: right; transition: all 0.2s;">
+                                ${prob}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (currentStep === 3) {
+                stepContent = `
+                    <h2 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.5)}; font-weight: 600; color: ${textColor}; margin: 0 0 1.5rem 0; text-align: center;">
+                        اختر المنطقة العامة
+                    </h2>
+                    <div style="display: grid; gap: 0.75rem;">
+                        ${areas.map(area => `
+                            <button class="area-btn" data-area="${area}" style="background-color: ${surfaceColor}; border: 2px solid ${bgColor}; color: ${textColor}; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; padding: 1rem; border-radius: 0.75rem; cursor: pointer; text-align: right; transition: all 0.2s;">
+                                ${area}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (currentStep === 4) {
+                stepContent = `
+                    <h2 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.5)}; font-weight: 600; color: ${textColor}; margin: 0 0 1.5rem 0; text-align: center;">
+                        تفاصيل إضافية
+                    </h2>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="details" style="display: block; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.95)}; color: ${textColor}; margin-bottom: 0.5rem;">
+                            إذا حاب تحكي أكثر (اختياري)
+                        </label>
+                        <textarea id="details" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid ${bgColor}; border-radius: 0.5rem; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; color: ${textColor}; resize: vertical;">${formData.details}</textarea>
+                    </div>
+                    
+                    <div style="background-color: ${bgColor}; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.1)}; font-weight: 600; color: ${textColor}; margin: 0 0 0.5rem 0;">
+                            معلومات اختيارية (لمن يرغب)
+                        </h3>
+                        <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.85)}; color: ${secondaryColor}; margin: 0 0 1rem 0;">
+                            هذه المعلومات اختيارية تمامًا وتُستخدم فقط عند الحاجة للتحقق.
+                        </p>
+                        
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <label for="name" style="display: block; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; color: ${textColor}; margin-bottom: 0.5rem;">
+                                    الاسم (اختياري)
+                                </label>
+                                <input type="text" id="name" value="${formData.name}" style="width: 100%; padding: 0.75rem; border: 2px solid ${surfaceColor}; border-radius: 0.5rem; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; color: ${textColor};">
+                            </div>
+                            
+                            <div>
+                                <label for="idNumber" style="display: block; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; color: ${textColor}; margin-bottom: 0.5rem;">
+                                    رقم الهوية (9 أرقام فقط – اختياري)
+                                </label>
+                                <input type="text" id="idNumber" maxlength="9" pattern="[0-9]*" value="${formData.idNumber}" style="width: 100%; padding: 0.75rem; border: 2px solid ${surfaceColor}; border-radius: 0.5rem; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; color: ${textColor};">
+                            </div>
+                            
+                            <div>
+                                <label for="phone" style="display: block; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.9)}; color: ${textColor}; margin-bottom: 0.5rem;">
+                                    رقم الهاتف (10 أرقام فقط – اختياري)
+                                </label>
+                                <input type="text" id="phone" maxlength="10" pattern="[0-9]*" value="${formData.phone}" style="width: 100%; padding: 0.75rem; border: 2px solid ${surfaceColor}; border-radius: 0.5rem; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; color: ${textColor};">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="submitBtn" style="width: 100%; background-color: ${primaryColor}; color: white; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.1)}; font-weight: 500; padding: 1rem; border: none; border-radius: 0.75rem; cursor: pointer; margin-bottom: 0.75rem; transition: all 0.2s;">
+                        ${config.submit_button || defaultConfig.submit_button}
+                    </button>
+                    
+                    <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(0.85)}; color: ${secondaryColor}; text-align: center; margin: 0;">
+                        لن يتم التواصل معك إلا إذا رغبت
+                    </p>
+                `;
+            }
+
+            return `
+                <div class="fade-in" style="background-color: ${bgColor}; min-height: 100%; padding: 1.5rem; display: flex; align-items: center; justify-content: center;">
+                    <div style="max-width: 600px; width: 100%;">
+                        <div style="background-color: ${surfaceColor}; border-radius: 1rem; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="margin-bottom: 2rem;">
+                                <div style="height: 8px; background-color: ${bgColor}; border-radius: 999px; overflow: hidden;">
+                                    <div style="height: 100%; background-color: ${primaryColor}; width: ${progress}%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="slide-in">
+                                ${stepContent}
+                            </div>
+                            
+                            ${currentStep > 1 ? `
+                                <button id="backBtn" style="width: 100%; background-color: transparent; border: 2px solid ${secondaryColor}; color: ${secondaryColor}; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; padding: 0.75rem; border-radius: 0.75rem; cursor: pointer; margin-top: 1rem; transition: all 0.2s;">
+                                    رجوع
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSuccessPage() {
+            const bgColor = config.background_color || defaultConfig.background_color;
+            const surfaceColor = config.surface_color || defaultConfig.surface_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+            const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+
+            return `
+                <div class="fade-in" style="background-color: ${bgColor}; min-height: 100%; padding: 1.5rem; display: flex; align-items: center; justify-content: center;">
+                    <div style="max-width: 600px; width: 100%; text-align: center;">
+                        <div style="background-color: ${surfaceColor}; border-radius: 1rem; padding: 3rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <div style="font-size: ${getScaledFontSize(4)}; margin-bottom: 1.5rem;">✓</div>
+                            <h2 style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.75)}; font-weight: 600; color: ${textColor}; margin: 0 0 1rem 0;">
+                                تمت المشاركة
+                            </h2>
+                            <p style="font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1.1)}; color: ${textColor}; margin: 0 0 2rem 0; line-height: 1.6;">
+                                التكرار يساعد في توجيه الاستجابة الإنسانية.
+                            </p>
+                            <button id="newReportBtn" style="background-color: ${primaryColor}; color: white; font-family: ${getCustomFont()}; font-size: ${getScaledFontSize(1)}; font-weight: 500; padding: 0.875rem 2rem; border: none; border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                                مشاركة جديدة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (currentPage === 'reassurance') {
+                app.innerHTML = renderReassurancePage();
+                attachReassuranceListeners();
+            } else if (currentPage === 'form') {
+                app.innerHTML = renderFormPage();
+                attachFormListeners();
+            } else if (currentPage === 'success') {
+                app.innerHTML = renderSuccessPage();
+                attachSuccessListeners();
+            }
+        }
+
+        function attachReassuranceListeners() {
+            const startBtn = document.getElementById('startBtn');
+            const infoToggle = document.getElementById('infoToggle');
+            const infoContent = document.getElementById('infoContent');
+            const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+
+            startBtn.addEventListener('mouseenter', () => {
+                startBtn.style.opacity = '0.9';
+                startBtn.style.transform = 'translateY(-1px)';
+            });
+
+            startBtn.addEventListener('mouseleave', () => {
+                startBtn.style.opacity = '1';
+                startBtn.style.transform = 'translateY(0)';
+            });
+
+            startBtn.addEventListener('click', () => {
+                currentPage = 'form';
+                currentStep = 1;
+                render();
+            });
+
+            infoToggle.addEventListener('click', () => {
+                const isVisible = infoContent.style.display === 'block';
+                infoContent.style.display = isVisible ? 'none' : 'block';
+            });
+        }
+
+        function attachFormListeners() {
+            const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+            const bgColor = config.background_color || defaultConfig.background_color;
+
+            if (currentStep === 1) {
+                const categoryBtns = document.querySelectorAll('.category-btn');
+                categoryBtns.forEach(btn => {
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.borderColor = primaryColor;
+                        btn.style.transform = 'translateY(-2px)';
+                    });
+
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.borderColor = bgColor;
+                        btn.style.transform = 'translateY(0)';
+                    });
+
+                    btn.addEventListener('click', () => {
+                        formData.category = btn.dataset.category;
+                        currentStep = 2;
+                        render();
+                    });
+                });
+            } else if (currentStep === 2) {
+                const subproblemBtns = document.querySelectorAll('.subproblem-btn');
+                subproblemBtns.forEach(btn => {
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.borderColor = primaryColor;
+                        btn.style.transform = 'translateY(-2px)';
+                    });
+
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.borderColor = bgColor;
+                        btn.style.transform = 'translateY(0)';
+                    });
+
+                    btn.addEventListener('click', () => {
+                        formData.subProblem = btn.dataset.problem;
+                        currentStep = 3;
+                        render();
+                    });
+                });
+            } else if (currentStep === 3) {
+                const areaBtns = document.querySelectorAll('.area-btn');
+                areaBtns.forEach(btn => {
+                    btn.addEventListener('mouseenter', () => {
+                        btn.style.borderColor = primaryColor;
+                        btn.style.transform = 'translateY(-2px)';
+                    });
+
+                    btn.addEventListener('mouseleave', () => {
+                        btn.style.borderColor = bgColor;
+                        btn.style.transform = 'translateY(0)';
+                    });
+
+                    btn.addEventListener('click', () => {
+                        formData.area = btn.dataset.area;
+                        currentStep = 4;
+                        render();
+                    });
+                });
+            } else if (currentStep === 4) {
+                const detailsInput = document.getElementById('details');
+                const nameInput = document.getElementById('name');
+                const idInput = document.getElementById('idNumber');
+                const phoneInput = document.getElementById('phone');
+                const submitBtn = document.getElementById('submitBtn');
+
+                detailsInput.addEventListener('input', (e) => {
+                    formData.details = e.target.value;
+                });
+
+                nameInput.addEventListener('input', (e) => {
+                    formData.name = e.target.value;
+                });
+
+                idInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    formData.idNumber = e.target.value;
+                });
+
+                phoneInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    formData.phone = e.target.value;
+                });
+
+                submitBtn.addEventListener('mouseenter', () => {
+                    submitBtn.style.opacity = '0.9';
+                    submitBtn.style.transform = 'translateY(-1px)';
+                });
+
+                submitBtn.addEventListener('mouseleave', () => {
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.transform = 'translateY(0)';
+                });
+
+                submitBtn.addEventListener('click', async () => {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'جاري المشاركة...';
+
+// محاكاة إرسال (Prototype)
+await new Promise(resolve => setTimeout(resolve, 1200));
+
+// نجاح الإرسال
+formData = {
+    category: '',
+    subProblem: '',
+    area: '',
+    details: '',
+    name: '',
+    idNumber: '',
+    phone: ''
+};
+
+currentPage = 'success';
+render();
+
+
+                    if (result.isOk) {
+                        formData = {
+                            category: '',
+                            subProblem: '',
+                            area: '',
+                            details: '',
+                            name: '',
+                            idNumber: '',
+                            phone: ''
+                        };
+                        currentPage = 'success';
+                        render();
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = config.submit_button || defaultConfig.submit_button;
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText = `
+                            margin-top: 1rem;
+                            padding: 1rem;
+                            background-color: #fee;
+                            border-radius: 0.5rem;
+                            text-align: center;
+                            font-family: ${getCustomFont()};
+                            font-size: ${getScaledFontSize(0.9)};
+                            color: #c00;
+                        `;
+                        errorDiv.textContent = 'حدث خطأ. يرجى المحاولة مرة أخرى.';
+                        submitBtn.parentElement.appendChild(errorDiv);
+                    }
+                });
+            }
+
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) {
+                const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+                backBtn.addEventListener('mouseenter', () => {
+                    backBtn.style.backgroundColor = secondaryColor;
+                    backBtn.style.color = 'white';
+                });
+
+                backBtn.addEventListener('mouseleave', () => {
+                    backBtn.style.backgroundColor = 'transparent';
+                    backBtn.style.color = secondaryColor;
+                });
+
+                backBtn.addEventListener('click', () => {
+                    currentStep--;
+                    render();
+                });
+            }
+        }
+
+        function attachSuccessListeners() {
+            const newReportBtn = document.getElementById('newReportBtn');
+            
+            newReportBtn.addEventListener('mouseenter', () => {
+                newReportBtn.style.opacity = '0.9';
+                newReportBtn.style.transform = 'translateY(-1px)';
+            });
+
+            newReportBtn.addEventListener('mouseleave', () => {
+                newReportBtn.style.opacity = '1';
+                newReportBtn.style.transform = 'translateY(0)';
+            });
+
+            newReportBtn.addEventListener('click', () => {
+                currentPage = 'reassurance';
+                currentStep = 1;
+                render();
+            });
+        }
+
+        const dataHandler = {
+            onDataChanged(data) {
+            }
+        };
+
+        async function onConfigChange(newConfig) {
+            config = newConfig;
+            render();
+        }
+
+        async function init() {
+            if (window.dataSdk) {
+                const initResult = await window.dataSdk.init(dataHandler);
+                if (!initResult.isOk) {
+                    console.error("Failed to initialize data SDK");
+                }
+            }
+
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities: (cfg) => ({
+                        recolorables: [
+                            {
+                                get: () => cfg.background_color || defaultConfig.background_color,
+                                set: (value) => {
+                                    cfg.background_color = value;
+                                    window.elementSdk.setConfig({ background_color: value });
+                                }
+                            },
+                            {
+                                get: () => cfg.surface_color || defaultConfig.surface_color,
+                                set: (value) => {
+                                    cfg.surface_color = value;
+                                    window.elementSdk.setConfig({ surface_color: value });
+                                }
+                            },
+                            {
+                                get: () => cfg.text_color || defaultConfig.text_color,
+                                set: (value) => {
+                                    cfg.text_color = value;
+                                    window.elementSdk.setConfig({ text_color: value });
+                                }
+                            },
+                            {
+                                get: () => cfg.primary_action_color || defaultConfig.primary_action_color,
+                                set: (value) => {
+                                    cfg.primary_action_color = value;
+                                    window.elementSdk.setConfig({ primary_action_color: value });
+                                }
+                            },
+                            {
+                                get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color,
+                                set: (value) => {
+                                    cfg.secondary_action_color = value;
+                                    window.elementSdk.setConfig({ secondary_action_color: value });
+                                }
+                            }
+                        ],
+                        borderables: [],
+                        fontEditable: {
+                            get: () => cfg.font_family || defaultConfig.font_family,
+                            set: (value) => {
+                                cfg.font_family = value;
+                                window.elementSdk.setConfig({ font_family: value });
+                            }
+                        },
+                        fontSizeable: {
+                            get: () => cfg.font_size || defaultConfig.font_size,
+                            set: (value) => {
+                                cfg.font_size = value;
+                                window.elementSdk.setConfig({ font_size: value });
+                            }
+                        }
+                    }),
+                    mapToEditPanelValues: (cfg) => new Map([
+                        ["main_title", cfg.main_title || defaultConfig.main_title],
+                        ["subtitle", cfg.subtitle || defaultConfig.subtitle],
+                        ["trust_text", cfg.trust_text || defaultConfig.trust_text],
+                        ["start_button", cfg.start_button || defaultConfig.start_button],
+                        ["submit_button", cfg.submit_button || defaultConfig.submit_button]
+                    ])
+                });
+
+                config = window.elementSdk.config;
+            }
+
+            render();
+        }
+
+        init();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ade900f464a5dab',t:'MTc2NTcyNDM0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
